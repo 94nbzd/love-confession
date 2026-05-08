@@ -462,10 +462,142 @@ function burstHeart() {
       ctx.fill();
     }
 
+    animateFireworks();
+    drawFireworks();
     requestAnimationFrame(animate);
   }
   animate();
 })();
+// ====== 烟花系统 ======
+var fireworks = [];
+var explosions = [];
+var nextLaunch = 0;
+
+var FIREWORK_COLORS = [
+  '#ff4d4d','#ff9900','#ffee00','#00e676',
+  '#00b0ff','#d500f9','#ff4081','#76ff03',
+  '#ff6e40','#ffab40','#e040fb','#18ffff'
+];
+
+function launchFirework(x, y) {
+  var color = FIREWORK_COLORS[Math.floor(Math.random() * FIREWORK_COLORS.length)];
+  fireworks.push({
+    x: x || Math.random() * W,
+    y: y || H,
+    vy: -(Math.random() * 6 + 8),
+    vx: (Math.random() - 0.5) * 3,
+    color: color,
+    trail: [],
+    trailLen: 15
+  });
+}
+
+function explodeFirework(fw) {
+  var count = 60 + Math.floor(Math.random() * 40);
+  for (var i = 0; i < count; i++) {
+    var angle = (i / count) * Math.PI * 2;
+    var speed = Math.random() * 6 + 2;
+    var hue = Math.random() * 360;
+    explosions.push({
+      x: fw.x, y: fw.y,
+      vx: Math.cos(angle) * speed + fw.vx * 0.3,
+      vy: Math.sin(angle) * speed + fw.vy * 0.3,
+      color: 'hsla(' + hue + ',100%,70%,1)',
+      alpha: 1,
+      decay: 0.015 + Math.random() * 0.01,
+      size: Math.random() * 2.5 + 1
+    });
+  }
+  // 中心亮斑
+  for (var i = 0; i < 10; i++) {
+    explosions.push({
+      x: fw.x, y: fw.y,
+      vx: (Math.random() - 0.5) * 3,
+      vy: (Math.random() - 0.5) * 3,
+      color: '#ffffff',
+      alpha: 1,
+      decay: 0.04,
+      size: Math.random() * 3 + 1.5
+    });
+  }
+}
+
+function animateFireworks() {
+  var now = Date.now();
+  // 随机发射烟花（每 400-900ms 一发）
+  if (now > nextLaunch) {
+    launchFirework();
+    nextLaunch = now + 400 + Math.random() * 500;
+  }
+
+  // 更新上升中的烟花
+  for (var i = fireworks.length - 1; i >= 0; i--) {
+    var f = fireworks[i];
+    f.trail.push({x: f.x, y: f.y});
+    if (f.trail.length > f.trailLen) f.trail.shift();
+    f.x += f.vx;
+    f.y += f.vy;
+    f.vy += 0.15; // 重力
+    // 速度变慢后爆炸
+    if (f.vy >= -1) {
+      explodeFirework(f);
+      fireworks.splice(i, 1);
+    }
+  }
+
+  // 更新爆炸粒子
+  for (var i = explosions.length - 1; i >= 0; i--) {
+    var p = explosions[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.08;
+    p.vx *= 0.98;
+    p.alpha -= p.decay;
+    if (p.alpha <= 0) {
+      explosions.splice(i, 1);
+    }
+  }
+}
+
+function drawFireworks() {
+  // 画上升中的烟花尾迹
+  for (var i = 0; i < fireworks.length; i++) {
+    var f = fireworks[i];
+    for (var j = 0; j < f.trail.length; j++) {
+      var t = f.trail[j];
+      var alpha = j / f.trail.length * 0.8;
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, 2, 0, Math.PI * 2);
+      ctx.fillStyle = f.color.replace(')', ',' + alpha + ')').replace('rgb', 'rgba').replace('hsl', 'hsla');
+      ctx.fillStyle = 'hsla(0,0%,100%,' + alpha + ')';
+      ctx.fill();
+    }
+    // 烟花头部
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = f.color;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  // 画爆炸粒子
+  for (var i = 0; i < explosions.length; i++) {
+    var p = explosions[i];
+    ctx.save();
+    ctx.globalAlpha = p.alpha;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fillStyle = p.color;
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = p.color;
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+
 
 // ====== 触摸支持 ======
 document.addEventListener('touchstart', function(e) {
