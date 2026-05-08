@@ -26,11 +26,18 @@
   }
 
   /* ===== 粒子画布 ===== */
-  #canvas {
+  #heart-canvas {
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
     z-index: 1;
+    pointer-events: none;
+  }
+  #firework-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 2;
     pointer-events: none;
   }
 
@@ -234,7 +241,8 @@
 <img id="bgImg" src="https://raw.githubusercontent.com/94nbzd/love-confession/main/gf-photo-compressed.jpg" alt="" style="display:none;">
 
 <!-- 粒子画布 -->
-<canvas id="canvas"></canvas>
+<canvas id="heart-canvas"></canvas>
+<canvas id="firework-canvas"></canvas>
 
 <!-- 音乐按钮 -->
 <button class="music-btn" id="musicBtn" onclick="toggleMusic()">🎵</button>
@@ -390,7 +398,7 @@ function burstHeart() {
 
 // ====== 爱心粒子动画 ======
 (function() {
-  var canvas = document.getElementById('canvas');
+  var canvas = document.getElementById('heart-canvas');
   var ctx = canvas.getContext('2d');
   var W, H, cx, cy, s;
   var phase = 0;
@@ -471,6 +479,8 @@ function burstHeart() {
 // ====== 烟花系统 ======
 var fireworks = [];
 var explosions = [];
+var fwCanvas2 = document.getElementById('firework-canvas');
+if (fwCanvas2) { fwCanvas2.width = window.innerWidth; fwCanvas2.height = window.innerHeight; }
 var nextLaunch = 0;
 
 var FIREWORK_COLORS = [
@@ -482,8 +492,8 @@ var FIREWORK_COLORS = [
 function launchFirework(x, y) {
   var color = FIREWORK_COLORS[Math.floor(Math.random() * FIREWORK_COLORS.length)];
   fireworks.push({
-    x: x || Math.random() * W,
-    y: y || H,
+    x: x || Math.random() * window.innerWidth,
+    y: y || window.innerHeight,
     vy: -(Math.random() * 6 + 8),
     vx: (Math.random() - 0.5) * 3,
     color: color,
@@ -560,6 +570,10 @@ function animateFireworks() {
 }
 
 function drawFireworks() {
+  var fwCanvas = document.getElementById('firework-canvas');
+  var fwCtx = fwCanvas.getContext('2d');
+  fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+  
   // 画上升中的烟花尾迹
   for (var i = 0; i < fireworks.length; i++) {
     var f = fireworks[i];
