@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>💕 给你的一封信</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Ma+Shan+Zheng&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #000;
+    overflow: hidden;
+    height: 100vh;
+    font-family: 'ZCOOL KuaiLe', 'Ma Shan Zheng', cursive;
+  }
+
+  /* 照片背景 */
+  #photo-bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: url('./gf-photo-compressed.jpg') center center / cover no-repeat;
+    z-index: 0;
+    filter: blur(3px) brightness(0.4);
+    transition: filter 2s;
+  }
+
+  /* 爱心粒子画布 */
+  #heart-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* 主内容 */
+  #content {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    text-align: center;
+    color: white;
+    width: 90%;
+    max-width: 700px;
+    display: none;
+  }
+
+  /* 照片框 */
+  #photo-frame {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    border: 4px solid rgba(255,255,255,0.3);
+    margin: 0 auto 20px;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(255,100,150,0.5);
+    animation: photoFloat 3s ease-in-out infinite;
+  }
+
+  #photo-frame img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+
+  @keyframes photoFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  /* 标题 */
+  #main-text {
+    font-size: 2.8rem;
+    margin-bottom: 10px;
+    text-shadow: 0 0 20px rgba(255,100,150,0.8);
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes glow {
+    from { text-shadow: 0 0 20px rgba(255,100,150,0.6); }
+    to { text-shadow: 0 0 40px rgba(255,100,150,1), 0 0 80px rgba(255,100,150,0.5); }
+  }
+
+  /* 计时器 */
+  #timer {
+    font-size: 1.2rem;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 25px;
+    letter-spacing: 2px;
+  }
+
+  /* 文字内容 */
+  #story {
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 25px 30px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .story-line {
+    font-size: 1.2rem;
+    line-height: 2;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.8s;
+    color: rgba(255,255,255,0.9);
+  }
+
+  .story-line.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .story-line.name {
+    color: #ff8ab5;
+    font-size: 1.4rem;
+  }
+
+  /* 爱心反应 */
+  #heart-reaction {
+    font-size: 3rem;
+    opacity: 0;
+    transition: opacity 0.5s;
+    cursor: pointer;
+    display: inline-block;
+  }
+
+  #heart-reaction.show {
+    opacity: 1;
+    animation: heartbeat 1s ease-in-out infinite;
+  }
+
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.4); }
+    50% { transform: scale(1); }
+    75% { transform: scale(1.4); }
+  }
+
+  /* 底部署名 */
+  #signature {
+    font-size: 1.1rem;
+    color: rgba(255,255,255,0.6);
+    margin-top: 15px;
+    opacity: 0;
+    transition: opacity 1s;
+  }
+
+  #signature.show { opacity: 1; }
+
+  /* 提示点击 */
+  #hint {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    color: rgba(255,255,255,0.6);
+    font-size: 1rem;
+    animation: bounce 2s ease-in-out infinite;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.6; }
+    50% { transform: translateX(-50%) translateY(-10px); opacity: 1; }
+  }
+
+  /* 音乐控制 */
+  #music-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 20;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    transition: all 0.3s;
+  }
+
+  #music-btn:hover {
+    background: rgba(255,255,255,0.2);
+    transform: scale(1.1);
+  }
+
+  /* 响应式 */
+  @media (max-width: 768px) {
+    #main-text { font-size: 2rem; }
+    .story-line { font-size: 1rem; }
+    .story-line.name { font-size: 1.2rem; }
+    #photo-frame { width: 120px; height: 120px; }
+    #story { padding: 20px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 照片背景 -->
+<div id="photo-bg"></div>
+
+<!-- 爱心粒子画布 -->
+<canvas id="heart-canvas"></canvas>
+
+<!-- 音乐按钮 -->
+<button id="music-btn">🎵</button>
+
+<!-- 主内容 -->
+<div id="content">
+  <div id="photo-frame">
+    <img src="./gf-photo-compressed.jpg" alt="她">
+  </div>
+  <div id="main-text">💕 我喜欢你 💕</div>
+  <div id="timer">我们在一起 <span id="days">--</span> 天啦</div>
+
+  <div id="story">
+    <div class="story-line name">To: 亲爱的她 💐</div>
+    <div class="story-line">遇见你，是我最美丽的意外。</div>
+    <div class="story-line">你的笑容，是我每天醒来的理由。</div>
+    <div class="story-line">和你在一起的每一秒，</div>
+    <div class="story-line">都让我想要更多。</div>
+    <div class="story-line">谢谢你愿意走进我的世界，</div>
+    <div class="story-line">愿意陪我笑，陪我闹，陪我成长。</div>
+    <div class="story-line">我想牵着你的手，</div>
+    <div class="story-line">一直走下去。</div>
+    <div class="story-line name" style="margin-top:10px;">我喜欢你，做我女朋友吧！</div>
+  </div>
+
+  <div id="heart-reaction">💖</div>
+  <div id="signature">—— 永远爱你的人</div>
+</div>
+
+<!-- 点击提示 -->
+<div id="hint">👇 点击屏幕开始 👇</div>
+
+<!-- 背景音乐 -->
+<audio id="bg-music" loop>
+  <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+// ====== 爱心粒子系统（经典心形粒子动画）======
+const canvas = document.getElementById('heart-canvas');
+const ctx = canvas.getContext('2d');
+let points = [];
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+function heartPos(rad) {
+  return [
+    Math.pow(Math.sin(rad), 3),
+    -(15 * Math.cos(rad) - 5 * Math.cos(2*rad) - 2 * Math.cos(3*rad) - Math.cos(4*rad))
+  ];
+}
+
+function scalePos(pos, sx, sy, dx, dy) {
+  return [dx + pos[0] * sx, dy + pos[1] * sy];
+}
+
+const isMobile = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(navigator.userAgent.toLowerCase());
+const koef = isMobile ? 0.5 : 1;
+const traceCount = isMobile ? 20 : 50;
+const [W, H] = [() => canvas.width, () => canvas.height];
+
+let width, height;
+function updateSize() {
+  width = canvas.width = koef * innerWidth;
+  height = canvas.height = koef * innerHeight;
+}
+updateSize();
+
+const heartPoints = [];
+let dr = isMobile ? 0.3 : 0.1;
+for (let i = 0; i < Math.PI * 2; i += dr) heartPoints.push(scalePos(heartPos(i), 210, 13, 0, 0));
+for (let i = 0; i < Math.PI * 2; i += dr) heartPoints.push(scalePos(heartPos(i), 150, 9, 0, 0));
+for (let i = 0; i < Math.PI * 2; i += dr) heartPoints.push(scalePos(heartPos(i), 90, 5, 0, 0));
+
+const targetPoints = [];
+const particles = [];
+
+for (let i = 0; i < heartPoints.length; i++) {
+  targetPoints[i] = [];
+  const x = Math.random() * width;
+  const y = Math.random() * height;
+  particles.push({
+    x, y,
+    vx: 0, vy: 0,
+    R: 2,
+    speed: Math.random() + 5,
+    q: i,
+    D: 2 * (i % 2) - 1,
+    force: 0.2 * Math.random() + 0.7,
+    color: `hsla(0,${~~(40 * Math.random() + 60)}%,${~~(60 * Math.random() + 20)}%,.3)`,
+    trace: Array.from({length: traceCount}, () => ({x, y}))
+  });
+}
+
+function pulse(kx, ky) {
+  for (let i = 0; i < heartPoints.length; i++) {
+    targetPoints[i][0] = kx * heartPoints[i][0] + width / 2;
+    targetPoints[i][1] = ky * heartPoints[i][1] + height / 2;
+  }
+}
+
+let time = 0;
+function animateHeart() {
+  const n = -Math.cos(time);
+  pulse((1+n)*0.5, (1+n)*0.5);
+  time += ((Math.sin(time)) < 0 ? 9 : (n > 0.8) ? 0.2 : 1) * 0.01;
+  ctx.fillStyle = 'rgba(0,0,0,0.1)';
+  ctx.fillRect(0, 0, width, height);
+
+  for (let i = particles.length; i--;) {
+    const u = particles[i];
+    const q = targetPoints[u.q];
+    const dx = u.trace[0].x - q[0];
+    const dy = u.trace[0].y - q[1];
+    const dist = Math.sqrt(dx*dx + dy*dy);
+
+    if (dist < 10) {
+      if (Math.random() < 0.95) u.q = ~~(Math.random() * heartPoints.length);
+      else if (Math.random() < 0.99) u.D *= -1;
+      u.q = (u.q + u.D + heartPoints.length) % heartPoints.length;
+    }
+
+    u.vx += -dx / dist * u.speed;
+    u.vy += -dy / dist * u.speed;
+    u.vx *= u.force;
+    u.vy *= u.force;
+
+    for (let k = 0; k < u.trace.length - 1; k++) {
+      u.trace[k].x -= 0.4 * (u.trace[k].x - u.trace[k+1].x);
+      u.trace[k].y -= 0.4 * (u.trace[k].y - u.trace[k+1].y);
+    }
+
+    ctx.fillStyle = u.color;
+    for (let k = 0; k < u.trace.length; k++) {
+      ctx.fillRect(u.trace[k].x, u.trace[k].y, 1, 1);
+    }
+  }
+
+  ctx.fillStyle = 'rgba(255,255,255,1)';
+  for (let i = particles.length + 13; i--;) {
+    ctx.fillRect(targetPoints[i][0], targetPoints[i][1], 2, 2);
+  }
+
+  requestAnimationFrame(animateHeart);
+}
+animateHeart();
+
+// ====== 计时器 ======
+function updateTimer() {
+  // 设置你们在一起的日期
+  const together = new Date();
+  together.setFullYear(2025, 5, 15); // 2025年6月15日
+  together.setHours(0, 0, 0, 0);
+  const now = new Date();
+  const diff = Math.floor((now - together) / (1000 * 60 * 60 * 24));
+  document.getElementById('days').textContent = diff > 0 ? diff : 0;
+}
+updateTimer();
+
+// ====== 点击交互 ======
+const hint = document.getElementById('hint');
+const content = document.getElementById('content');
+const music = document.getElementById('bg-music');
+const musicBtn = document.getElementById('music-btn');
+const photoBg = document.getElementById('photo-bg');
+const storyLines = document.querySelectorAll('.story-line');
+const heartReaction = document.getElementById('heart-reaction');
+const signature = document.getElementById('signature');
+
+let started = false;
+
+function startConfession() {
+  if (started) return;
+  started = true;
+
+  music.play().catch(() => {});
+
+  // 模糊背景变清晰
+  photoBg.style.filter = 'blur(2px) brightness(0.5)';
+  hint.style.display = 'none';
+
+  // 显示内容
+  content.style.display = 'block';
+
+  // 依次显示文字
+  storyLines.forEach((line, i) => {
+    setTimeout(() => line.classList.add('show'), 1500 + i * 600);
+  });
+
+  // 显示爱心反应
+  setTimeout(() => heartReaction.classList.add('show'), 1500 + storyLines.length * 600 + 500);
+
+  // 显示署名
+  setTimeout(() => signature.classList.add('show'), 1500 + storyLines.length * 600 + 1500);
+}
+
+// 点击/触摸都触发
+function handleStart(e) {
+  if (started) return;
+  started = true;
+  music.play().catch(() => {});
+  photoBg.style.filter = 'blur(2px) brightness(0.5)';
+  hint.style.display = 'none';
+  content.style.display = 'block';
+  storyLines.forEach((line, i) => {
+    setTimeout(() => line.classList.add('show'), 1500 + i * 600);
+  });
+  setTimeout(() => heartReaction.classList.add('show'), 1500 + storyLines.length * 600 + 500);
+  setTimeout(() => signature.classList.add('show'), 1500 + storyLines.length * 600 + 1500);
+}
+
+document.addEventListener('click', handleStart);
+document.addEventListener('touchend', handleStart);
+
+// 音乐控制
+musicBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (!started) handleStart(e);
+  if (music.paused) {
+    music.play();
+    musicBtn.textContent = '🎵';
+  } else {
+    music.pause();
+    musicBtn.textContent = '🔇';
+  }
+});
+
+// 点击爱心炸开粒子
+heartReaction.addEventListener('click', (e) => {
+  e.stopPropagation();
+  // 额外粒子效果 - 在爱心位置生成
+  for (let i = 0; i < 30; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const dist = Math.random() * 100 + 20;
+    const tx = width/2 + Math.cos(angle) * dist;
+    const ty = height/2 + Math.sin(angle) * dist;
+    particles.push({
+      x: width/2, y: height/2,
+      vx: (tx - width/2) * 0.1,
+      vy: (ty - height/2) * 0.1,
+      R: Math.random() * 3 + 1,
+      speed: 0,
+      q: particles.length,
+      D: 1,
+      force: 1,
+      color: `hsla(${Math.random()*360},100%,70%,0.8)`,
+      trace: Array.from({length: 30}, () => ({x: width/2, y: height/2}))
+    });
+  }
+});
+</script>
+
+</body>
+</html>
