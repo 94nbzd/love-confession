@@ -236,6 +236,8 @@
 </style>
 </head>
 <body>
+<canvas id="heart-canvas"></canvas>
+<canvas id="firework-canvas"></canvas>
 
 <!-- 背景照片 - 使用img标签，src直接内嵌data URL -->
 <img id="bgImg" src="https://raw.githubusercontent.com/94nbzd/love-confession/main/gf-photo-compressed.jpg" alt="" style="display:none;">
@@ -481,7 +483,10 @@ var fireworks = [];
 var explosions = [];
 var fwCanvas2 = document.getElementById('firework-canvas');
 if (fwCanvas2) { fwCanvas2.width = window.innerWidth; fwCanvas2.height = window.innerHeight; }
+// 页面一打开立即发射3发烟花（连续发，效果更震撼）
 var nextLaunch = 0;
+launchFirework(); launchFirework(); launchFirework();
+nextLaunch = Date.now() + 300; // 300ms后开始正常间隔
 
 var FIREWORK_COLORS = [
   '#ff4d4d','#ff9900','#ffee00','#00e676',
@@ -503,7 +508,7 @@ function launchFirework(x, y) {
 }
 
 function explodeFirework(fw) {
-  var count = 60 + Math.floor(Math.random() * 40);
+  var count = 100 + Math.floor(Math.random() * 60);
   for (var i = 0; i < count; i++) {
     var angle = (i / count) * Math.PI * 2;
     var speed = Math.random() * 6 + 2;
@@ -537,7 +542,7 @@ function animateFireworks() {
   // 随机发射烟花（每 400-900ms 一发）
   if (now > nextLaunch) {
     launchFirework();
-    nextLaunch = now + 400 + Math.random() * 500;
+    nextLaunch = now + 200 + Math.random() * 300;
   }
 
   // 更新上升中的烟花
