@@ -487,6 +487,11 @@ resizeFireworkCanvas();
 window.addEventListener('resize', resizeFireworkCanvas);
 // 页面一打开立即发射多批发烟花，营造震撼的开场效果
 var nextLaunch = 0;
+var FIREWORK_COLORS = [
+  '#ff4d4d','#ff9900','#ffee00','#00e676',
+  '#00b0ff','#d500f9','#ff4081','#76ff03',
+  '#ff6e40','#ffab40','#e040fb','#18ffff'
+];
 // 第一波：立即发射5发烟花
 for (var k = 0; k < 5; k++) {
   launchFirework();
@@ -504,12 +509,6 @@ setTimeout(function() {
   }
 }, 450);
 nextLaunch = Date.now() + 800; // 800ms后开始正常间隔发射
-
-var FIREWORK_COLORS = [
-  '#ff4d4d','#ff9900','#ffee00','#00e676',
-  '#00b0ff','#d500f9','#ff4081','#76ff03',
-  '#ff6e40','#ffab40','#e040fb','#18ffff'
-];
 
 function launchFirework(x, y) {
   var color = FIREWORK_COLORS[Math.floor(Math.random() * FIREWORK_COLORS.length)];
