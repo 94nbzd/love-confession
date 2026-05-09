@@ -236,10 +236,8 @@
 </style>
 </head>
 <body>
-<canvas id="heart-canvas"></canvas>
-<canvas id="firework-canvas"></canvas>
 
-<!-- 背景照片 - 使用img标签，src直接内嵌data URL -->
+<!-- 背景照片 -->
 <img id="bgImg" src="https://raw.githubusercontent.com/94nbzd/love-confession/main/gf-photo-compressed.jpg" alt="" style="display:none;">
 
 <!-- 粒子画布 -->
@@ -482,11 +480,30 @@ function burstHeart() {
 var fireworks = [];
 var explosions = [];
 var fwCanvas2 = document.getElementById('firework-canvas');
-if (fwCanvas2) { fwCanvas2.width = window.innerWidth; fwCanvas2.height = window.innerHeight; }
-// 页面一打开立即发射3发烟花（连续发，效果更震撼）
+function resizeFireworkCanvas() {
+  if (fwCanvas2) { fwCanvas2.width = window.innerWidth; fwCanvas2.height = window.innerHeight; }
+}
+resizeFireworkCanvas();
+window.addEventListener('resize', resizeFireworkCanvas);
+// 页面一打开立即发射多批发烟花，营造震撼的开场效果
 var nextLaunch = 0;
-launchFirework(); launchFirework(); launchFirework();
-nextLaunch = Date.now() + 300; // 300ms后开始正常间隔
+// 第一波：立即发射5发烟花
+for (var k = 0; k < 5; k++) {
+  launchFirework();
+}
+// 第二波：200ms后再发射4发
+setTimeout(function() {
+  for (var k = 0; k < 4; k++) {
+    launchFirework();
+  }
+}, 200);
+// 第三波：450ms后再发射3发
+setTimeout(function() {
+  for (var k = 0; k < 3; k++) {
+    launchFirework();
+  }
+}, 450);
+nextLaunch = Date.now() + 800; // 800ms后开始正常间隔发射
 
 var FIREWORK_COLORS = [
   '#ff4d4d','#ff9900','#ffee00','#00e676',
@@ -497,52 +514,68 @@ var FIREWORK_COLORS = [
 function launchFirework(x, y) {
   var color = FIREWORK_COLORS[Math.floor(Math.random() * FIREWORK_COLORS.length)];
   fireworks.push({
-    x: x || Math.random() * window.innerWidth,
+    x: x || Math.random() * window.innerWidth * 0.9 + window.innerWidth * 0.05,
     y: y || window.innerHeight,
-    vy: -(Math.random() * 6 + 8),
-    vx: (Math.random() - 0.5) * 3,
+    vy: -(Math.random() * 5 + 10),
+    vx: (Math.random() - 0.5) * 2,
     color: color,
     trail: [],
-    trailLen: 15
+    trailLen: 25
   });
 }
 
 function explodeFirework(fw) {
-  var count = 100 + Math.floor(Math.random() * 60);
+  var count = 150 + Math.floor(Math.random() * 80);
+  var hue = Math.floor(Math.random() * 360);
   for (var i = 0; i < count; i++) {
-    var angle = (i / count) * Math.PI * 2;
-    var speed = Math.random() * 6 + 2;
-    var hue = Math.random() * 360;
+    var angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
+    var speed = Math.random() * 8 + 3;
+    var particleHue = hue + (Math.random() - 0.5) * 40;
     explosions.push({
       x: fw.x, y: fw.y,
       vx: Math.cos(angle) * speed + fw.vx * 0.3,
       vy: Math.sin(angle) * speed + fw.vy * 0.3,
-      color: 'hsla(' + hue + ',100%,70%,1)',
+      color: 'hsla(' + particleHue + ',100%,65%,1)',
       alpha: 1,
-      decay: 0.015 + Math.random() * 0.01,
-      size: Math.random() * 2.5 + 1
+      decay: 0.012 + Math.random() * 0.012,
+      size: Math.random() * 3 + 1.2
     });
   }
-  // 中心亮斑
-  for (var i = 0; i < 10; i++) {
+  // 中心亮斑 - 更亮更大
+  for (var i = 0; i < 20; i++) {
     explosions.push({
       x: fw.x, y: fw.y,
-      vx: (Math.random() - 0.5) * 3,
-      vy: (Math.random() - 0.5) * 3,
+      vx: (Math.random() - 0.5) * 4,
+      vy: (Math.random() - 0.5) * 4,
       color: '#ffffff',
       alpha: 1,
-      decay: 0.04,
-      size: Math.random() * 3 + 1.5
+      decay: 0.06 + Math.random() * 0.03,
+      size: Math.random() * 5 + 2
+    });
+  }
+  // 闪烁的星光
+  for (var i = 0; i < 8; i++) {
+    var angle = Math.random() * Math.PI * 2;
+    var dist = Math.random() * 30 + 10;
+    explosions.push({
+      x: fw.x + Math.cos(angle) * dist,
+      y: fw.y + Math.sin(angle) * dist,
+      vx: Math.cos(angle) * 2,
+      vy: Math.sin(angle) * 2,
+      color: '#ffffff',
+      alpha: 1,
+      decay: 0.08,
+      size: 3 + Math.random() * 4
     });
   }
 }
 
 function animateFireworks() {
   var now = Date.now();
-  // 随机发射烟花（每 400-900ms 一发）
+  // 随机发射烟花（每 600-1500ms 一发）
   if (now > nextLaunch) {
     launchFirework();
-    nextLaunch = now + 200 + Math.random() * 300;
+    nextLaunch = now + 600 + Math.random() * 900;
   }
 
   // 更新上升中的烟花
@@ -552,9 +585,9 @@ function animateFireworks() {
     if (f.trail.length > f.trailLen) f.trail.shift();
     f.x += f.vx;
     f.y += f.vy;
-    f.vy += 0.15; // 重力
-    // 速度变慢后爆炸
-    if (f.vy >= -1) {
+    f.vy += 0.12; // 重力
+    // 上升到一定高度后爆炸（vy接近0时表示到达顶点）
+    if (f.vy >= -2.5) {
       explodeFirework(f);
       fireworks.splice(i, 1);
     }
@@ -578,41 +611,53 @@ function drawFireworks() {
   var fwCanvas = document.getElementById('firework-canvas');
   var fwCtx = fwCanvas.getContext('2d');
   fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
-  
+
   // 画上升中的烟花尾迹
   for (var i = 0; i < fireworks.length; i++) {
     var f = fireworks[i];
     for (var j = 0; j < f.trail.length; j++) {
       var t = f.trail[j];
-      var alpha = j / f.trail.length * 0.8;
-      ctx.beginPath();
-      ctx.arc(t.x, t.y, 2, 0, Math.PI * 2);
-      ctx.fillStyle = f.color.replace(')', ',' + alpha + ')').replace('rgb', 'rgba').replace('hsl', 'hsla');
-      ctx.fillStyle = 'hsla(0,0%,100%,' + alpha + ')';
-      ctx.fill();
+      var alpha = j / f.trail.length * 0.7;
+      var size = (j / f.trail.length) * 2.5 + 0.5;
+      fwCtx.beginPath();
+      fwCtx.arc(t.x, t.y, size, 0, Math.PI * 2);
+      fwCtx.fillStyle = 'rgba(255,255,255,' + alpha + ')';
+      fwCtx.fill();
     }
-    // 烟花头部
-    ctx.beginPath();
-    ctx.arc(f.x, f.y, 3, 0, Math.PI * 2);
-    ctx.fillStyle = '#ffffff';
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = f.color;
-    ctx.fill();
-    ctx.shadowBlur = 0;
+    // 烟花头部 - 发光效果
+    fwCtx.beginPath();
+    fwCtx.arc(f.x, f.y, 4, 0, Math.PI * 2);
+    fwCtx.fillStyle = '#ffffff';
+    fwCtx.shadowBlur = 15;
+    fwCtx.shadowColor = f.color;
+    fwCtx.fill();
+    fwCtx.shadowBlur = 0;
+    // 头部外发光
+    fwCtx.beginPath();
+    fwCtx.arc(f.x, f.y, 8, 0, Math.PI * 2);
+    fwCtx.fillStyle = f.color;
+    fwCtx.globalAlpha = 0.4;
+    fwCtx.fill();
+    fwCtx.globalAlpha = 1;
   }
 
   // 画爆炸粒子
   for (var i = 0; i < explosions.length; i++) {
     var p = explosions[i];
-    ctx.save();
-    ctx.globalAlpha = p.alpha;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-    ctx.fillStyle = p.color;
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = p.color;
-    ctx.fill();
-    ctx.restore();
+    fwCtx.save();
+    fwCtx.globalAlpha = p.alpha;
+    fwCtx.beginPath();
+    fwCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    fwCtx.fillStyle = p.color;
+    fwCtx.shadowBlur = 12;
+    fwCtx.shadowColor = p.color;
+    fwCtx.fill();
+    fwCtx.globalAlpha = p.alpha * 0.3;
+    fwCtx.beginPath();
+    fwCtx.arc(p.x, p.y, p.size * 2.5, 0, Math.PI * 2);
+    fwCtx.fillStyle = p.color;
+    fwCtx.fill();
+    fwCtx.restore();
   }
 }
 
